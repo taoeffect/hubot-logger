@@ -27,7 +27,8 @@ log_streams = {}
 
 log_message = (root, type, channel, meta) ->
   mkdirp(path.resolve root, channel)
-  log_file = path.resolve root, channel, moment().format("YYYY-MM-DD") + '.txt'
+  date = moment()
+  log_file = path.resolve root, channel, date.format("YYYY-MM-DD[.txt]")
   meta.date = date
   meta.channel = channel
   meta.type = type
