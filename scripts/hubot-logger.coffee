@@ -16,6 +16,7 @@
 # CREATE TABLE IF NOT EXISTS chanlog (id INTEGER PRIMARY KEY, ts INTEGER, chan VARCHAR(32), user VARCHAR(100), message TEXT);
 {Robot, Adapter, TextMessage, EnterMessage, LeaveMessage, CatchAllMessage} = require 'hubot'
 express = require "express"
+moment = require "moment"
 fs = require "fs"
 path = require "path"
 sys = require "sys"
@@ -24,9 +25,9 @@ mkdirp = require("mkdirp").sync
 
 log_streams = {}
 
-log_message = (root, date, type, channel, meta) ->
+log_message = (root, type, channel, meta) ->
   mkdirp(path.resolve root, channel)
-  log_file = path.resolve root, channel, date.toString("%Y-%m-%d") + '.txt'
+  log_file = path.resolve root, channel, moment().format("YYYY-MM-DD") + '.txt'
   meta.date = date
   meta.channel = channel
   meta.type = type
@@ -63,10 +64,10 @@ render_log = (req, res, channel, file, date, dates, latest) ->
       
       continue unless event?
 
-      event.date = new Date(Date.parse event.date)
-      event.time = event.date.toLocaleTimeString()
-      event.timestamp = "#{event.time}:#{event.date.getMilliseconds()}"
-      continue unless event.date?
+      event.date = moment event.date
+      continue unless event.date.isValid()
+      event.time = event.date.format "HH:mm:ss"
+      event.timestamp = event.date.format "HH:mm:ss:SSS"
 
       events.push(event)
 
@@ -118,26 +119,26 @@ module.exports = (robot) ->
     robot.adapter.bot.on 'message', (nick, to, text, message) ->
       result = (text + '').match(/^\x01ACTION (.*)\x01$/)
       if !result
-        log_message(logs_root, new Date(), "message", to, {nick: nick, message: text, raw: message })
+        log_message(logs_root, "message", to, {nick: nick, message: text, raw: message })
       else
-        log_message(logs_root, new Date(), "action", to, {nick: nick, action: result[1], raw: message })
+        log_message(logs_root, "action", to, {nick: nick, action: result[1], raw: message })
     
     robot.adapter.bot.on 'nick', (oldnick, newnick, channels, message) ->
       for channel in channels
-        log_message(logs_root, new Date(), "nick", channel, {nick: oldnick, new_nick: newnick })
+        log_message(logs_root, "nick", channel, {nick: oldnick, new_nick: newnick })
         
     robot.adapter.bot.on 'topic', (channel, topic, nick, message) ->
-      log_message(logs_root, new Date(), "topic", channel, {nick: nick, topic: topic })
+      log_message(logs_root, "topic", channel, {nick: nick, topic: topic })
 
     robot.adapter.bot.on 'join', (channel, nick, message) ->
-      log_message(logs_root, new Date(), "join", channel, { nick: nick })
+      log_message(logs_root, "join", channel, { nick: nick })
 
     robot.adapter.bot.on 'part', (channel, nick, reason, message) ->
-      log_message(logs_root, new Date(), "part", channel, { nick: nick, reason: reason })
+      log_message(logs_root, "part", channel, { nick: nick, reason: reason })
 
     robot.adapter.bot.on 'quit', (nick, reason, channels, message) ->
       for channel in channels
-        log_message(logs_root, new Date(), "quit", channel, { nick: nick, reason: reason })
+        log_message(logs_root, "quit", channel, { nick: nick, reason: reason })
 
     # robot.logger_orig_receive = robot.receive
     # robot.receive = (message) ->

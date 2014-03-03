@@ -29,8 +29,7 @@ block body
             td.time
               a(href='#' + event.timestamp)= event.time
               a(name= event.timestamp, class='time-anchor')
-                - var nbsp = '&nbsp;'
-                !{nbsp}
+                != '&nbsp;'
 
             - if (event.type == 'message')
               td.nick= '<' + event.nick + '>'
