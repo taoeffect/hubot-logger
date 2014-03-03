@@ -97,23 +97,23 @@ render_log = (req, res, channel, file, date, dates, latest) ->
 
 module.exports = (robot) ->
     # init logging
-    util.puts(util.inspect(robot))
-    util.puts(util.inspect(robot.adapter.bot))
-    util.puts(util.inspect(robot.adapter.bot.opt.channels))
+    console.log(util.inspect(robot))
+    console.log(util.inspect(robot.adapter.bot))
+    console.log(util.inspect(robot.adapter.bot.opt.channels))
     logs_root = process.env.IRCLOGS_FOLDER || "/var/irclogs/logs"
     mkdirp(logs_root)
 
     # robot.adapter.bot.on 'pm', (nick, text, message) ->
-    #   util.puts("PM--------------")
-    #   util.puts(util.inspect(message))
+    #   console.log("PM--------------")
+    #   console.log(util.inspect(message))
 
     # robot.adapter.bot.on 'ctcp', (nick, text, message) ->
-    #   util.puts("CTCP--------------")
-    #   util.puts(util.inspect(message))
+    #   console.log("CTCP--------------")
+    #   console.log(util.inspect(message))
 
     # robot.adapter.bot.on 'raw', (message) ->
-    #   util.puts("RAW--------------")
-    #   util.puts(util.inspect(message))
+    #   console.log("RAW--------------")
+    #   console.log(util.inspect(message))
 
     robot.adapter.bot.on 'message', (nick, to, text, message) ->
       result = (text + '').match(/^\x01ACTION (.*)\x01$/)
@@ -141,11 +141,11 @@ module.exports = (robot) ->
 
     # robot.logger_orig_receive = robot.receive
     # robot.receive = (message) ->
-    #   util.puts(util.inspect(message))
+    #   console.log(util.inspect(message))
     #   robot.logger_orig_receive(message)
 
     # robot.hear /.*$/i, (msg) ->
-    #   util.puts(util.inspect(msg))
+    #   console.log(util.inspect(msg))
 
     # init app
     port = process.env.IRCLOGS_PORT || 8086
