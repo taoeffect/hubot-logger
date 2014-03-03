@@ -1,12 +1,6 @@
 # Description:
 #   Logs all messages on an irc channel
 #
-# Dependencies:
-#   Tempus
-#   mkdirp
-#   express
-#   jade
-#
 # Configuration:
 #   IRCLOGS_FOLDER
 #   HUBOT_LOGGER_HTTP_LOGIN
@@ -16,7 +10,8 @@
 #   hubot otr - not yer implemented
 #
 # Author:
-#   adragomir
+#   adragomir (original)
+#   taoeffect (March 2, 2014 - ?)
 
 # CREATE TABLE IF NOT EXISTS chanlog (id INTEGER PRIMARY KEY, ts INTEGER, chan VARCHAR(32), user VARCHAR(100), message TEXT);
 {Robot, Adapter, TextMessage, EnterMessage, LeaveMessage, CatchAllMessage} = require 'hubot'
@@ -25,7 +20,6 @@ fs = require "fs"
 path = require "path"
 sys = require "sys"
 util = require "util"
-Tempus = require "Tempus"
 mkdirp = require("mkdirp").sync
 
 log_streams = {}
@@ -69,9 +63,9 @@ render_log = (req, res, channel, file, date, dates, latest) ->
       
       continue unless event?
 
-      event.date = new Tempus(event.date)
-      event.time = event.date.toString("%H:%M:%S")
-      event.timestamp = event.date.toString("%H:%M:%S:%L")
+      event.date = new Date(Date.parse event.date)
+      event.time = event.date.toLocaleTimeString()
+      event.timestamp = "#{event.time}:#{event.date.getMilliseconds()}"
       continue unless event.date?
 
       events.push(event)
@@ -124,26 +118,26 @@ module.exports = (robot) ->
     robot.adapter.bot.on 'message', (nick, to, text, message) ->
       result = (text + '').match(/^\x01ACTION (.*)\x01$/)
       if !result
-        log_message(logs_root, new Tempus(), "message", to, {nick: nick, message: text, raw: message })
+        log_message(logs_root, new Date(), "message", to, {nick: nick, message: text, raw: message })
       else
-        log_message(logs_root, new Tempus(), "action", to, {nick: nick, action: result[1], raw: message })
+        log_message(logs_root, new Date(), "action", to, {nick: nick, action: result[1], raw: message })
     
     robot.adapter.bot.on 'nick', (oldnick, newnick, channels, message) ->
       for channel in channels
-        log_message(logs_root, new Tempus(), "nick", channel, {nick: oldnick, new_nick: newnick })
+        log_message(logs_root, new Date(), "nick", channel, {nick: oldnick, new_nick: newnick })
         
     robot.adapter.bot.on 'topic', (channel, topic, nick, message) ->
-      log_message(logs_root, new Tempus(), "topic", channel, {nick: nick, topic: topic })
+      log_message(logs_root, new Date(), "topic", channel, {nick: nick, topic: topic })
 
     robot.adapter.bot.on 'join', (channel, nick, message) ->
-      log_message(logs_root, new Tempus(), "join", channel, { nick: nick })
+      log_message(logs_root, new Date(), "join", channel, { nick: nick })
 
     robot.adapter.bot.on 'part', (channel, nick, reason, message) ->
-      log_message(logs_root, new Tempus(), "part", channel, { nick: nick, reason: reason })
+      log_message(logs_root, new Date(), "part", channel, { nick: nick, reason: reason })
 
     robot.adapter.bot.on 'quit', (nick, reason, channels, message) ->
       for channel in channels
-        log_message(logs_root, new Tempus(), "quit", channel, { nick: nick, reason: reason })
+        log_message(logs_root, new Date(), "quit", channel, { nick: nick, reason: reason })
 
     # robot.logger_orig_receive = robot.receive
     # robot.receive = (message) ->
